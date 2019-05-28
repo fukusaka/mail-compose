@@ -1,0 +1,73 @@
+version: "3"
+services:
+  dovecot:
+    build: ./docker/dovecot
+    environment:
+      - TZ=${TZ}
+      - VMAIL_UID=${VMAIL_UID}
+      - VMAIL_GID=${VMAIL_GID}
+      - AUTH_SCHEME=${AUTH_SCHEME}
+      - USERNAME_FORMAT=${USERNAME_FORMAT}
+      - SMTP_AUTH_TYPE=unix
+      - SMTP_AUTH_PATH=${MAIL_UNIX_SOCKET_DIR}/auth
+      - LMTP_TYPE=unix
+      - LMTP_PATH=${MAIL_UNIX_SOCKET_DIR}/lmtp
+      - SSL=${IMAP_SSL}
+      - SSL_CERT=/etc/ssl/general/certs/${IMAP_CERT}
+      - SSL_KEY=/etc/ssl/general/private/${IMAP_KEY}
+    ports:
+      - "993:993"
+    volumes:
+      - ./${SSL}:/etc/ssl/general:ro
+      - ./${CONF}/${USERS}:/inject/dovecot/users:ro
+      - ./mail:/var/mail
+      - dovecot-unix-socket-dir:${MAIL_UNIX_SOCKET_DIR}
+  postfix:
+    build: ./docker/postfix
+    environment:
+      - TZ=${TZ}
+      - MAIL_NAME=${MAIL_NAME}
+      - MAIL_HOSTNAME=${MAIL_HOSTNAME}
+      - USE_SUBMISSION=yes
+      - SMTP_AUTH=dovecot
+      - SMTP_AUTH_PATH=${MAIL_UNIX_SOCKET_DIR}/auth
+      - USE_STARTTLS=${SMTP_SSL}
+      - SSL_CERT=/etc/ssl/general/certs/${SMTP_CERT}
+      - SSL_KEY=/etc/ssl/general/private/${SMTP_KEY}
+      - VIRTUAL_TRANSPORT=lmtp:unix:${MAIL_UNIX_SOCKET_DIR}/lmtp
+      - USE_SPF=yes
+      - SPF_PATH=unix:${MAIL_UNIX_SOCKET_DIR}/policyd-spf
+      - USE_OPENDKIM=yes
+      - OPENDKIM_PATH=inet:opendkim:8891
+      - DEBUG_PEER_LIST=${DEBUG_PEER_LIST}
+    ports:
+      - "25:25"
+      - "587:587"
+    volumes:
+      - ./${SSL}:/etc/ssl/general:ro
+      - ./${CONF}/vmailbox:/inject/postfix/vmailbox:ro
+      - dovecot-unix-socket-dir:${MAIL_UNIX_SOCKET_DIR}
+  policyd-spf:
+    build: ./docker/policyd-spf
+    environment:
+      - TZ=${TZ}
+      - POLICYD_PATH=${MAIL_UNIX_SOCKET_DIR}/policyd-spf
+    volumes:
+      - dovecot-unix-socket-dir:${MAIL_UNIX_SOCKET_DIR}
+  opendkim:
+    build: ./docker/opendkim
+    environment:
+      - TZ=${TZ}
+      - OPENDKIM_UID=${OPENDKIM_UID}
+      - OPENDKIM_GID=${OPENDKIM_GID}
+      - MODE=vs
+      - SOCKET=inet:8891@opendkim
+    volumes:
+      - ./${CONF}/${DKIM_KEYTABLE}:/etc/opendkim/KeyTable:ro
+      - ./${CONF}/${DKIM_SIGNINGTABLE}:/etc/opendkim/SigningTable:ro
+      - ./${DKIM_KEYS}:/etc/opendkim/keys:ro
+      - dovecot-unix-socket-dir:${MAIL_UNIX_SOCKET_DIR}
+
+volumes:
+  dovecot-unix-socket-dir:
+    driver: "local"
