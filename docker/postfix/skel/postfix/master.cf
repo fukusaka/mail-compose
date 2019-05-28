@@ -10,6 +10,28 @@
 #               (yes)   (yes)   (no)    (never) (100)
 # ==========================================================================
 smtp      inet  n       -       n       -       -       smtpd
+ifelse(__USE_SUBMISSION__,[[yes]],[[dnl
+ifelse(__SMTP_AUTH__,[[dovecot]],[[dnl
+submission inet n       -       n       -       -       smtpd
+  -o syslog_name=postfix/submission
+ifelse(__USE_STARTTLS__,[[yes]],[[dnl
+  -o smtpd_tls_security_level=encrypt
+  -o smtpd_tls_auth_only=yes
+]])dnl
+  -o smtpd_sasl_auth_enable=yes
+  -o smtpd_sasl_type=dovecot
+  -o smtpd_sasl_path=__SMTP_AUTH_PATH__
+  -o smtpd_reject_unlisted_recipient=no
+  -o smtpd_sasl_security_options=noanonymous
+  -o smtpd_sasl_local_domain=$myhostname
+  -o smtpd_client_restrictions=$mua_client_restrictions
+  -o smtpd_helo_restrictions=$mua_helo_restrictions
+  -o smtpd_sender_restrictions=$mua_sender_restrictions
+  -o smtpd_recipient_restrictions=$mua_recipient_restrictions
+  -o smtpd_relay_restrictions=$mua_relay_restrictions
+  -o milter_macro_daemon_name=ORIGINATING
+]])dnl
+]])dnl
 #smtp      inet  n       -       n       -       1       postscreen
 #smtpd     pass  -       -       n       -       -       smtpd
 #dnsblog   unix  -       -       n       -       0       dnsblog
@@ -64,6 +86,7 @@ virtual   unix  -       n       n       -       -       virtual
 lmtp      unix  -       -       n       -       -       lmtp
 anvil     unix  -       -       n       -       1       anvil
 scache    unix  -       -       n       -       1       scache
+postlog   unix-dgram n  -       n       -       1       postlogd
 #
 # ====================================================================
 # Interfaces to non-Postfix software. Be sure to examine the manual
@@ -130,3 +153,8 @@ scache    unix  -       -       n       -       1       scache
 #mailman   unix  -       n       n       -       -       pipe
 #  flags=FR user=list argv=/usr/lib/mailman/bin/postfix-to-mailman.py
 #  ${nexthop} ${user}
+ifelse(__USE_SPF__,[[yes]],[[dnl
+#
+#policy     unix  -       n       n       -       0       spawn
+#  user=nobody argv=/usr/sbin/postfix-policyd-spf-perl
+]])

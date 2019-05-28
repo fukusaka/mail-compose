@@ -93,6 +93,7 @@ mail_owner = postfix
 #
 #myhostname = host.domain.tld
 #myhostname = virtual.domain.tld
+myhostname = __MAIL_HOSTNAME__
 
 # The mydomain parameter specifies the local internet domain name.
 # The default is to use $myhostname minus the first component.
@@ -100,6 +101,7 @@ mail_owner = postfix
 # parameters.
 #
 #mydomain = domain.tld
+mydomain = __MAIL_NAME__
 
 # SENDING MAIL
 # 
@@ -116,6 +118,7 @@ mail_owner = postfix
 #
 #myorigin = $myhostname
 #myorigin = $mydomain
+myorigin = $mydomain
 
 # RECEIVING MAIL
 
@@ -180,6 +183,7 @@ mail_owner = postfix
 #mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
 #mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain,
 #	mail.$mydomain, www.$mydomain, ftp.$mydomain
+mydestination =
 
 # REJECTING MAIL FOR UNKNOWN LOCAL USERS
 #
@@ -264,6 +268,7 @@ unknown_local_recipient_reject_code = 550
 #mynetworks_style = class
 #mynetworks_style = subnet
 #mynetworks_style = host
+mynetworks_style = host
 
 # Alternatively, you can specify the mynetworks list by hand, in
 # which case Postfix ignores the mynetworks_style setting.
@@ -373,6 +378,11 @@ unknown_local_recipient_reject_code = 550
 # The VIRTUAL_README document gives information about the many forms
 # of domain hosting that Postfix supports.
 
+virtual_mailbox_domains = $myorigin
+virtual_mailbox_maps = hash:/etc/postfix/vmailbox
+virtual_alias_maps = hash:/etc/postfix/virtual
+virtual_transport = __VIRTUAL_TRANSPORT__
+
 # "USER HAS MOVED" BOUNCE MESSAGES
 #
 # See the discussion in the ADDRESS_REWRITING_README document.
@@ -401,6 +411,7 @@ unknown_local_recipient_reject_code = 550
 #alias_maps = hash:/etc/aliases
 #alias_maps = hash:/etc/aliases, nis:mail.aliases
 #alias_maps = netinfo:/aliases
+alias_maps = hash:/etc/postfix/aliases
 
 # The alias_database parameter specifies the alias database(s) that
 # are built with "newaliases" or "sendmail -bi".  This is a separate
@@ -411,6 +422,7 @@ unknown_local_recipient_reject_code = 550
 #alias_database = dbm:/etc/mail/aliases
 #alias_database = hash:/etc/aliases
 #alias_database = hash:/etc/aliases, hash:/opt/majordomo/aliases
+alias_database = hash:/etc/postfix/aliases
 
 # ADDRESS EXTENSIONS (e.g., user+foo)
 #
@@ -422,6 +434,7 @@ unknown_local_recipient_reject_code = 550
 # trying user and .forward.
 #
 #recipient_delimiter = +
+recipient_delimiter = +
 
 # DELIVERY TO MAILBOX
 #
@@ -601,6 +614,7 @@ debug_peer_level = 2
 #
 #debug_peer_list = 127.0.0.1
 #debug_peer_list = some.domain
+debug_peer_list = __DEBUG_PEER_LIST__
 
 # The debugger_command specifies the external command that is executed
 # when a Postfix daemon program is run with the -D option.
@@ -676,3 +690,34 @@ readme_directory = /usr/share/doc/postfix/readme
 inet_protocols = ipv4
 meta_directory = /etc/postfix
 shlib_directory = /usr/lib/postfix
+
+maillog_file = /dev/stdout
+
+mua_client_restrictions = permit_sasl_authenticated,reject
+mua_helo_restrictions = permit_sasl_authenticated,reject
+mua_sender_restrictions = permit_sasl_authenticated,reject
+mua_recipient_restrictions =
+mua_relay_restrictions = permit_sasl_authenticated,reject
+
+ifelse(__USE_SPF__,[[yes]],[[dnl
+# Policy / SPF
+smtpd_recipient_restrictions =
+    reject_unauth_destination,
+    check_policy_service { __SPF_PATH__,
+        { timeout = 3600s }
+     }
+]])dnl
+
+ifelse(__USE_OPENDKIM__,[[yes]],[[dnl
+# milter (Mail Filter)
+milter_default_action = accept
+milter_protocol = 2
+smtpd_milters = __OPENDKIM_PATH__
+non_smtpd_milters = __OPENDKIM_PATH__
+]])dnl
+
+ifelse(__USE_STARTTLS__,[[yes]],[[dnl
+# TLS
+smtpd_tls_cert_file = __SSL_CERT__
+smtpd_tls_key_file = __SSL_KEY__
+]])dnl
