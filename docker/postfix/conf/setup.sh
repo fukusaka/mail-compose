@@ -38,14 +38,12 @@ for target in ${TARGETS} ; do
    m4 define.m4 ${target} > /etc/${target}
 done
 
-for target in ${INJECT} ; do
-   if [ -f "/inject/$target" ]; then
-       tar c -C /inject $target | tar x -oC /etc
-   fi
-done
-
 for table in ${LOOKUP_TABLES} ; do
     if [ ! -f "/etc/postfix/${table}" ]; then
         touch "/etc/postfix/${table}"
     fi
 done
+
+if [ -f /setup_local.sh ]; then
+   . /setup_local.sh
+fi

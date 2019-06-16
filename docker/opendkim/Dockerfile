@@ -19,16 +19,15 @@ COPY conf/setup.sh /setup.sh
 RUN chmod +x /init.sh /setup.sh
 COPY skel /skel
 
+ENV TZ="Asia/Tokyo"
 ENV OPENDKIM_UID=${OPENDKIM_UID}
 ENV OPENDKIM_GID=${OPENDKIM_GID}
-ENV TZ="Asia/Tokyo"
 ENV CANNONICALIZATION="simple"
 ENV MODE="sv"
 ENV SUBDOMAINS="no"
 ENV SOCKET="local:/var/run/opendkim/opendkim.sock"
 ENV KEYTABLE="/etc/opendkim/KeyTable"
 ENV SIGNINGTABLE="/etc/opendkim/SigningTable"
-ENV INJECT="opendkim"
 
 EXPOSE 8891
 

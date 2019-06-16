@@ -33,6 +33,5 @@ ENV MAIL_HOSTNAME=smtp.example.com
 ENV VIRTUAL_TRANSPORT=""
 ENV LOOKUP_TABLES="virtual vmailbox"
 ENV DEBUG_PEER_LIST=""
-ENV INJECT="postfix"
 
 CMD ["/init.sh"]

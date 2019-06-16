@@ -14,7 +14,6 @@ KEYTABLE
 SIGNINGTABLE
 "
 
-
 cd /skel
 
 (
@@ -29,8 +28,6 @@ for target in ${TARGETS} ; do
    m4 define.m4 ${target} > /etc/${target}
 done
 
-for target in ${INJECT} ; do
-   if [ -f "/inject/$target" ]; then
-       tar c -C /inject $target | tar x -oC /etc
-   fi
-done
+if [ -f /setup_local.sh ]; then
+   . /setup_local.sh
+fi

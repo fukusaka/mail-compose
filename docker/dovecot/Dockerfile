@@ -38,7 +38,6 @@ ENV SMTP_AUTH_PORT="588"
 ENV LMTP_TYPE="none"
 ENV LMTP_PATH="lmtp"
 ENV LMTP_PORT="24"
-ENV INJECT="dovecot"
 
 VOLUME /var/mail
 
