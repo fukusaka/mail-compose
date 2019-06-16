@@ -1,6 +1,7 @@
 version: "3"
 services:
   dovecot:
+    #build: ./docker/dovecot
     image: fukusaka/mail-dovecot:latest
     environment:
       - TZ=${TZ}
@@ -20,9 +21,12 @@ services:
     volumes:
       - ./${SSL}:/etc/ssl/general:ro
       - ./${CONF}/${USERS}:/inject/dovecot/users:ro
+      - ./${CONF}/setup_dovecot.sh:/setup_local.sh:ro
       - ./mail:/var/mail
       - dovecot-unix-socket-dir:${MAIL_UNIX_SOCKET_DIR}
+    restart: always
   postfix:
+    #build: ./docker/postfix
     image: fukusaka/mail-postfix:latest
     environment:
       - TZ=${TZ}
@@ -46,8 +50,12 @@ services:
     volumes:
       - ./${SSL}:/etc/ssl/general:ro
       - ./${CONF}/vmailbox:/inject/postfix/vmailbox:ro
+      - ./${CONF}/setup_postfix.sh:/setup_local.sh:ro
       - dovecot-unix-socket-dir:${MAIL_UNIX_SOCKET_DIR}
+    restart: always
   policyd-spf:
+    restart: always
+    #build: ./docker/policyd-spf
     image: fukusaka/mail-policyd-spf:latest
     environment:
       - TZ=${TZ}
@@ -55,6 +63,7 @@ services:
     volumes:
       - dovecot-unix-socket-dir:${MAIL_UNIX_SOCKET_DIR}
   opendkim:
+    #build: ./docker/opendkim
     image: fukusaka/mail-opendkim:latest
     environment:
       - TZ=${TZ}
@@ -63,10 +72,12 @@ services:
       - MODE=vs
       - SOCKET=inet:8891@opendkim
     volumes:
-      - ./${CONF}/${DKIM_KEYTABLE}:/inject/opendkim/KeyTable:ro
-      - ./${CONF}/${DKIM_SIGNINGTABLE}:/inject/opendkim/SigningTable:ro
+      - ./${CONF}/${DKIM_KEYTABLE}:/etc/opendkim/KeyTable:ro
+      - ./${CONF}/${DKIM_SIGNINGTABLE}:/etc/opendkim/SigningTable:ro
       - ./${DKIM_KEYS}:/inject/opendkim/keys:ro
+      - ./${CONF}/setup_opendkim.sh:/setup_local.sh:ro
       - dovecot-unix-socket-dir:${MAIL_UNIX_SOCKET_DIR}
+    restart: always
 
 volumes:
   dovecot-unix-socket-dir:
