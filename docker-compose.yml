@@ -63,9 +63,9 @@ services:
       - MODE=vs
       - SOCKET=inet:8891@opendkim
     volumes:
-      - ./${CONF}/${DKIM_KEYTABLE}:/etc/opendkim/KeyTable:ro
-      - ./${CONF}/${DKIM_SIGNINGTABLE}:/etc/opendkim/SigningTable:ro
-      - ./${DKIM_KEYS}:/etc/opendkim/keys:ro
+      - ./${CONF}/${DKIM_KEYTABLE}:/inject/opendkim/KeyTable:ro
+      - ./${CONF}/${DKIM_SIGNINGTABLE}:/inject/opendkim/SigningTable:ro
+      - ./${DKIM_KEYS}:/inject/opendkim/keys:ro
       - dovecot-unix-socket-dir:${MAIL_UNIX_SOCKET_DIR}
 
 volumes:

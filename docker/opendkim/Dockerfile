@@ -28,6 +28,7 @@ ENV SUBDOMAINS="no"
 ENV SOCKET="local:/var/run/opendkim/opendkim.sock"
 ENV KEYTABLE="/etc/opendkim/KeyTable"
 ENV SIGNINGTABLE="/etc/opendkim/SigningTable"
+ENV INJECT="opendkim"
 
 EXPOSE 8891
 
