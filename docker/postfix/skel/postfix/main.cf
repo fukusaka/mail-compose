@@ -283,7 +283,7 @@ mynetworks_style = host
 #
 #mynetworks = 168.100.189.0/28, 127.0.0.0/8
 #mynetworks = $config_directory/mynetworks
-#mynetworks = hash:/etc/postfix/network_table
+#mynetworks = lmdb:/etc/postfix/network_table
 
 # The relay_domains parameter restricts what destinations this system will
 # relay mail to.  See the smtpd_recipient_restrictions description in
@@ -348,7 +348,7 @@ mynetworks_style = host
 # In the left-hand side, specify an @domain.tld wild-card, or specify
 # a user@domain.tld address.
 # 
-#relay_recipient_maps = hash:/etc/postfix/relay_recipients
+#relay_recipient_maps = lmdb:/etc/postfix/relay_recipients
 
 # INPUT RATE CONTROL
 #
@@ -379,8 +379,8 @@ mynetworks_style = host
 # of domain hosting that Postfix supports.
 
 virtual_mailbox_domains = $myorigin
-virtual_mailbox_maps = hash:/etc/postfix/vmailbox
-virtual_alias_maps = hash:/etc/postfix/virtual
+virtual_mailbox_maps = lmdb:/etc/postfix/vmailbox
+virtual_alias_maps = lmdb:/etc/postfix/virtual
 virtual_transport = __VIRTUAL_TRANSPORT__
 
 # "USER HAS MOVED" BOUNCE MESSAGES
@@ -408,10 +408,10 @@ virtual_transport = __VIRTUAL_TRANSPORT__
 # "postfix reload" to eliminate the delay.
 #
 #alias_maps = dbm:/etc/aliases
-#alias_maps = hash:/etc/aliases
-#alias_maps = hash:/etc/aliases, nis:mail.aliases
+#alias_maps = lmdb:/etc/aliases
+#alias_maps = lmdb:/etc/aliases, nis:mail.aliases
 #alias_maps = netinfo:/aliases
-alias_maps = hash:/etc/postfix/aliases
+alias_maps = lmdb:/etc/postfix/aliases
 
 # The alias_database parameter specifies the alias database(s) that
 # are built with "newaliases" or "sendmail -bi".  This is a separate
@@ -420,9 +420,9 @@ alias_maps = hash:/etc/postfix/aliases
 #
 #alias_database = dbm:/etc/aliases
 #alias_database = dbm:/etc/mail/aliases
-#alias_database = hash:/etc/aliases
-#alias_database = hash:/etc/aliases, hash:/opt/majordomo/aliases
-alias_database = hash:/etc/postfix/aliases
+#alias_database = lmdb:/etc/aliases
+#alias_database = lmdb:/etc/aliases, lmdb:/opt/majordomo/aliases
+alias_database = lmdb:/etc/postfix/aliases
 
 # ADDRESS EXTENSIONS (e.g., user+foo)
 #
