@@ -7,6 +7,14 @@ name: Docker
 
 on:
   workflow_dispatch:
+#  schedule:
+#    - cron: '37 11 * * *'
+#  push:
+#    branches: [ "main" ]
+#    # Publish semver tags as releases.
+#    tags: [ 'v*.*.*' ]
+#  pull_request:
+#    branches: [ "main" ]
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -25,12 +33,16 @@ jobs:
         include:
           - name: dovecot
             image: ${{ github.actor }}/mail-dovecot
+            hub-image: fukusaka/mail-dovecot
           - name: postfix
             image: ${{ github.actor }}/mail-postfix
+            hub-image: fukusaka/mail-postfix
           - name: policyd-spf
             image: ${{ github.actor }}/mail-policyd-spf
+            hub-image: fukusaka/mail-policyd-spf
           - name: opendkim
             image: ${{ github.actor }}/mail-opendkim
+            hub-image: fukusaka/mail-opendkim
     permissions:
       contents: read
       packages: write
@@ -55,6 +67,12 @@ jobs:
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@79abd3f86f79a9d68a23c75a09a9a85889262adf
 
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
       - name: Log into registry ${{ env.REGISTRY }}
@@ -71,7 +89,9 @@ jobs:
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
-          images: ${{ env.REGISTRY }}/${{ matrix.image }}
+          images: |
+            ${{ matrix.hub-image }}
+            ${{ env.REGISTRY }}/${{ matrix.image }}
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
